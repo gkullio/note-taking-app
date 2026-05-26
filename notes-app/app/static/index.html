@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1017;
+      --bg2:       #131720;
+      --bg3:       #1a2030;
+      --border:    #232b3a;
+      --text:      #c8c4ba;
+      --text-dim:  #5c6270;
+      --text-mute: #3a4050;
+      --amber:     #c9923a;
+      --amber-dim: #8a5f1f;
+      --red:       #b84a4a;
+      --sidebar-w: 280px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      height: 46px;
+      min-height: 46px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 14px;
+      z-index: 10;
+    }
+
+    #topbar .logo {
+      font-family: 'Newsreader', serif;
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--amber);
+      letter-spacing: 0.01em;
+      flex-shrink: 0;
+    }
+
+    #topbar .logo span { font-style: italic; }
+
+    #search-wrap {
+      flex: 1;
+      max-width: 360px;
+      position: relative;
+    }
+    #search {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 6px 10px 6px 30px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #search:focus { border-color: var(--amber-dim); }
+    #search::placeholder { color: var(--text-mute); }
+    #search-wrap svg {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+    }
+
+    #btn-new {
+      margin-left: auto;
+      background: var(--amber);
+      color: #0d1017;
+      border: none;
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    #btn-new:hover { opacity: 0.85; }
+
+    /* ── MAIN AREA ── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #sidebar-header {
+      padding: 14px 16px 10px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-mute);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #note-count {
+      font-size: 10px;
+      color: var(--text-mute);
+      background: var(--bg3);
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    #note-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+    #note-list::-webkit-scrollbar { width: 4px; }
+    #note-list::-webkit-scrollbar-track { background: transparent; }
+    #note-list::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+
+    .note-item {
+      padding: 11px 16px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: background 0.12s, border-color 0.12s;
+      position: relative;
+    }
+    .note-item:hover { background: var(--bg3); }
+    .note-item.active {
+      background: var(--bg3);
+      border-left-color: var(--amber);
+    }
+
+    .note-item-title {
+      font-family: 'Newsreader', serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: #e0dbd0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .note-item.active .note-item-title { color: #f0ebe0; }
+
+    .note-item-meta {
+      font-size: 10px;
+      color: var(--text-mute);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .note-item-preview {
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    #empty-list {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 10px;
+      color: var(--text-mute);
+      font-size: 12px;
+      text-align: center;
+      padding: 20px;
+    }
+    #empty-list svg { opacity: 0.3; }
+
+    /* ── EDITOR ── */
+    #editor-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    #editor-toolbar {
+      height: 44px;
+      min-height: 44px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 10px;
+    }
+
+    #save-status {
+      font-size: 11px;
+      color: var(--text-mute);
+      margin-left: auto;
+      transition: color 0.2s;
+    }
+    #save-status.saving { color: var(--amber-dim); }
+    #save-status.saved  { color: #4a8a5a; }
+
+    #btn-delete {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    #btn-delete:hover { border-color: var(--red); color: var(--red); }
+
+    #editor-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 32px 48px 24px;
+      gap: 0;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    #title-input {
+      font-family: 'Newsreader', serif;
+      font-size: 32px;
+      font-weight: 400;
+      color: #f0ebe0;
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      padding: 0 0 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      resize: none;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    #title-input::placeholder { color: var(--text-mute); }
+
+    #content-input {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--text);
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      resize: none;
+      overflow-y: auto;
+    }
+    #content-input::placeholder { color: var(--text-mute); }
+    #content-input::-webkit-scrollbar { width: 4px; }
+    #content-input::-webkit-scrollbar-track { background: transparent; }
+    #content-input::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+
+    /* ── EMPTY STATE ── */
+    #no-note {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--text-mute);
+    }
+    #no-note .label {
+      font-family: 'Newsreader', serif;
+      font-size: 22px;
+      font-style: italic;
+      color: var(--text-dim);
+    }
+    #no-note .hint { font-size: 11px; }
+
+    #editor-toolbar, #editor-body { display: none; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .note-item { animation: fadeIn 0.18s ease both; }
+
+    /* ── MODAL ── */
+    #modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-overlay.show { display: flex; }
+    #modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 32px;
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeIn 0.15s ease;
+    }
+    #modal h3 {
+      font-family: 'Newsreader', serif;
+      font-size: 18px;
+      font-weight: 400;
+      color: #e0dbd0;
+    }
+    #modal p { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+    #modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-dim); font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; padding: 6px 14px; border-radius: 4px; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--text-dim); }
+    .btn-confirm-delete {
+      background: var(--red); border: none; color: #fff;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      padding: 6px 14px; border-radius: 4px; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-confirm-delete:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo">note<span>s</span></div>
+  <div id="search-wrap">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search" type="text" placeholder="Search notes…" autocomplete="off" />
+  </div>
+  <button id="btn-new">+ New Note</button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <span>All Notes</span>
+      <span id="note-count">0</span>
+    </div>
+    <div id="note-list"></div>
+    <div id="empty-list">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <span id="empty-list-msg">No notes yet</span>
+    </div>
+  </div>
+
+  <!-- EDITOR -->
+  <div id="editor-pane">
+
+    <!-- toolbar (hidden until note selected) -->
+    <div id="editor-toolbar">
+      <span id="save-status">—</span>
+      <button id="btn-delete">Delete</button>
+    </div>
+
+    <!-- body (hidden until note selected) -->
+    <div id="editor-body">
+      <textarea id="title-input" rows="1" placeholder="Note title…" spellcheck="false"></textarea>
+      <textarea id="content-input" placeholder="Start writing…" spellcheck="false"></textarea>
+    </div>
+
+    <!-- empty state -->
+    <div id="no-note">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <span class="label">Select a note</span>
+      <span class="hint">or create a new one</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h3>Delete this note?</h3>
+    <p>This action is permanent and cannot be undone.</p>
+    <div id="modal-actions">
+      <button class="btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="btn-confirm-delete" id="modal-confirm">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = '/api/notes';
+  let notes = [];
+  let activeId = null;
+  let saveTimer = null;
+
+  // ── DOM refs ──
+  const noteList    = document.getElementById('note-list');
+  const emptyList   = document.getElementById('empty-list');
+  const emptyMsg    = document.getElementById('empty-list-msg');
+  const noteCount   = document.getElementById('note-count');
+  const editorBar   = document.getElementById('editor-toolbar');
+  const editorBody  = document.getElementById('editor-body');
+  const noNote      = document.getElementById('no-note');
+  const titleInput  = document.getElementById('title-input');
+  const contentInput= document.getElementById('content-input');
+  const saveStatus  = document.getElementById('save-status');
+  const searchInput = document.getElementById('search');
+  const overlay     = document.getElementById('modal-overlay');
+
+  // ── API helpers ──
+  async function api(method, path, body) {
+    const res = await fetch(API + path, {
+      method,
+      headers: body ? {'Content-Type':'application/json'} : {},
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  // ── Load & render ──
+  async function loadNotes(q = '') {
+    const url = q ? `?q=${encodeURIComponent(q)}` : '';
+    notes = await api('GET', url);
+    renderList();
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `${diffH}h ago`;
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  }
+
+  function renderList() {
+    noteList.innerHTML = '';
+    noteCount.textContent = notes.length;
+
+    if (notes.length === 0) {
+      emptyList.style.display = 'flex';
+      emptyMsg.textContent = searchInput.value ? 'No matches found' : 'No notes yet';
+    } else {
+      emptyList.style.display = 'none';
+    }
+
+    notes.forEach((n, i) => {
+      const el = document.createElement('div');
+      el.className = 'note-item' + (n.id === activeId ? ' active' : '');
+      el.style.animationDelay = `${i * 0.03}s`;
+      const preview = n.content.replace(/\n/g,' ').slice(0, 60);
+      el.innerHTML = `
+        <div class="note-item-title">${escHtml(n.title || 'Untitled')}</div>
+        <div class="note-item-meta">${formatDate(n.updated_at)}</div>
+        ${preview ? `<div class="note-item-preview">${escHtml(preview)}</div>` : ''}
+      `;
+      el.onclick = () => openNote(n.id);
+      noteList.appendChild(el);
+    });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Open note ──
+  function openNote(id) {
+    activeId = id;
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+
+    editorBar.style.display  = 'flex';
+    editorBody.style.display = 'flex';
+    noNote.style.display     = 'none';
+
+    titleInput.value   = note.title;
+    contentInput.value = note.content;
+    setSaveStatus('idle');
+    renderList();
+    autoResizeTitle();
+    contentInput.focus();
+  }
+
+  function closeEditor() {
+    activeId = null;
+    editorBar.style.display  = 'none';
+    editorBody.style.display = 'none';
+    noNote.style.display     = 'flex';
+    renderList();
+  }
+
+  // ── Save status ──
+  function setSaveStatus(state, msg) {
+    saveStatus.className = '';
+    if (state === 'saving') {
+      saveStatus.className = 'saving';
+      saveStatus.textContent = 'saving…';
+    } else if (state === 'saved') {
+      saveStatus.className = 'saved';
+      saveStatus.textContent = '✓ saved';
+      setTimeout(() => { if (saveStatus.className === 'saved') setSaveStatus('idle'); }, 2000);
+    } else {
+      saveStatus.textContent = msg || '—';
+    }
+  }
+
+  // ── Auto-save ──
+  function scheduleSave() {
+    setSaveStatus('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveActive, 800);
+  }
+
+  async function saveActive() {
+    if (!activeId) return;
+    try {
+      const updated = await api('PUT', `/${activeId}`, {
+        title: titleInput.value || 'Untitled',
+        content: contentInput.value
+      });
+      // update local cache
+      const idx = notes.findIndex(n => n.id === activeId);
+      if (idx !== -1) notes[idx] = updated;
+      setSaveStatus('saved');
+      renderList();
+    } catch(e) {
+      setSaveStatus('idle', '⚠ save failed');
+    }
+  }
+
+  // ── Title auto-resize ──
+  function autoResizeTitle() {
+    titleInput.style.height = 'auto';
+    titleInput.style.height = titleInput.scrollHeight + 'px';
+  }
+
+  titleInput.addEventListener('input', () => { autoResizeTitle(); scheduleSave(); });
+  contentInput.addEventListener('input', scheduleSave);
+
+  // ── New note ──
+  document.getElementById('btn-new').onclick = async () => {
+    const note = await api('POST', '', { title: 'Untitled', content: '' });
+    notes.unshift(note);
+    renderList();
+    openNote(note.id);
+    titleInput.select();
+  };
+
+  // ── Search ──
+  let searchTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => loadNotes(searchInput.value.trim()), 200);
+  });
+
+  // ── Delete ──
+  document.getElementById('btn-delete').onclick = () => overlay.classList.add('show');
+  document.getElementById('modal-cancel').onclick = () => overlay.classList.remove('show');
+  document.getElementById('modal-confirm').onclick = async () => {
+    overlay.classList.remove('show');
+    if (!activeId) return;
+    await api('DELETE', `/${activeId}`);
+    notes = notes.filter(n => n.id !== activeId);
+    closeEditor();
+  };
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
+
+  // ── Keyboard shortcuts ──
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+      e.preventDefault();
+      document.getElementById('btn-new').click();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+    if (e.key === 'Escape') overlay.classList.remove('show');
+  });
+
+  // ── Init ──
+  loadNotes();
+  noNote.style.display = 'flex';
+</script>
+</body>
+</html>
