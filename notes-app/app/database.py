@@ -67,6 +67,15 @@ def init_db():
             content TEXT NOT NULL DEFAULT ''
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS account_managers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
+        )
+    """)
+    count = conn.execute("SELECT COUNT(*) FROM account_managers").fetchone()[0]
+    if count == 0:
+        conn.execute("INSERT INTO account_managers (name) VALUES (?)", ("Kirk MacCallum",))
     conn.commit()
     conn.close()
 

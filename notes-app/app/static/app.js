@@ -2,6 +2,7 @@ const API = '/api/notes';
 let notes = [];
 let companies = [];
 let contacts = [];
+let accountManagers = [];
 let contactSaveTimers = {};
 let accountNotesSaveTimer;
 let activeId = null;
@@ -19,7 +20,7 @@ const editorBody  = document.getElementById('editor-body');
 const noNote      = document.getElementById('no-note');
 const titleInput  = document.getElementById('title-input');
 const contentInput= document.getElementById('content-input');
-const acctMgrInput  = document.getElementById('acct-mgr-input');
+const acctMgrSelect = document.getElementById('acct-mgr-select');
 const companyInput  = document.getElementById('company-input');
 const dateInput     = document.getElementById('date-input');
 const sfUrlInput    = document.getElementById('sf-url-input');
@@ -170,7 +171,7 @@ function openNote(id) {
 
   titleInput.value   = note.title;
   contentInput.value = note.content;
-  acctMgrInput.value = note.account_manager || '';
+  populateAMSelect(note.account_manager || '');
   companyInput.value = note.company_name || '';
   dateInput.value    = note.date_last_contacted || '';
   sfUrlInput.value   = note.salesforce_url || '';
@@ -316,6 +317,60 @@ document.getElementById('btn-add-contact').onclick = async () => {
   row.querySelector('input').focus();
 };
 
+// ── Account Managers ──
+async function loadAccountManagers() {
+  try {
+    accountManagers = await apiFetch('/api/account-managers');
+    populateAMSelect();
+  } catch(e) {}
+}
+
+function populateAMSelect(selectedValue) {
+  const current = selectedValue !== undefined ? selectedValue : acctMgrSelect.value;
+  acctMgrSelect.innerHTML = '<option value="">—</option>';
+  accountManagers.forEach(am => {
+    const opt = document.createElement('option');
+    opt.value = am.name;
+    opt.textContent = am.name;
+    if (am.name === current) opt.selected = true;
+    acctMgrSelect.appendChild(opt);
+  });
+}
+
+document.getElementById('btn-add-am').onclick = () => {
+  document.getElementById('am-add-row').style.display = 'flex';
+  document.getElementById('am-add-input').focus();
+};
+
+document.getElementById('btn-am-cancel').onclick = () => {
+  document.getElementById('am-add-row').style.display = 'none';
+  document.getElementById('am-add-input').value = '';
+};
+
+document.getElementById('btn-am-confirm').onclick = async () => {
+  const name = document.getElementById('am-add-input').value.trim();
+  if (!name) return;
+  try {
+    const am = await apiFetch('/api/account-managers', 'POST', { name });
+    accountManagers.push(am);
+    accountManagers.sort((a, b) => a.name.localeCompare(b.name));
+    populateAMSelect(am.name);
+    document.getElementById('am-add-row').style.display = 'none';
+    document.getElementById('am-add-input').value = '';
+    scheduleSave();
+  } catch(e) {
+    // already exists — just close the row, the name is already in the list
+    populateAMSelect(name);
+    document.getElementById('am-add-row').style.display = 'none';
+    document.getElementById('am-add-input').value = '';
+  }
+};
+
+document.getElementById('am-add-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter')  document.getElementById('btn-am-confirm').click();
+  if (e.key === 'Escape') document.getElementById('btn-am-cancel').click();
+});
+
 // ── Save status ──
 function setSaveStatus(state, msg) {
   saveStatus.className = '';
@@ -344,7 +399,7 @@ async function saveActive() {
     const updated = await api('PUT', `/${activeId}`, {
       title: titleInput.value || 'Untitled',
       content: contentInput.value,
-      account_manager: acctMgrInput.value,
+      account_manager: acctMgrSelect.value,
       company_name: companyInput.value,
       date_last_contacted: dateInput.value,
       salesforce_url: sfUrlInput.value
@@ -378,7 +433,7 @@ function updateSfLink() {
 }
 
 sfUrlInput.addEventListener('input', () => { updateSfLink(); scheduleSave(); });
-acctMgrInput.addEventListener('input', scheduleSave);
+acctMgrSelect.addEventListener('change', scheduleSave);
 let contactCompanyTimer;
 companyInput.addEventListener('input', () => {
   scheduleSave();
@@ -475,5 +530,6 @@ document.addEventListener('keydown', e => {
 
 // ── Init ──
 updateSidebarHeader();
+loadAccountManagers();
 loadCompanies();
 noNote.style.display = 'flex';

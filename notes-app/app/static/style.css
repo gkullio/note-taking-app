@@ -456,6 +456,68 @@ body {
 #sf-url-open.show { display: flex; }
 #sf-url-open:hover { color: var(--amber); }
 
+/* ── ACCOUNT MANAGER SELECT ── */
+.meta-am-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.meta-am-wrap select.meta-input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%235c6270' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 26px;
+  cursor: pointer;
+}
+.meta-am-wrap select.meta-input option {
+  background: #1a2030;
+  color: #c8c4ba;
+}
+#btn-add-am {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  line-height: 1;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+#btn-add-am:hover { border-color: var(--amber-dim); color: var(--amber); }
+.btn-am-action {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-am-confirm { color: #4a8a5a; }
+.btn-am-confirm:hover { border-color: #4a8a5a; color: #5aaa6a; }
+.btn-am-cancel { color: var(--text-mute); }
+.btn-am-cancel:hover { border-color: var(--red); color: var(--red); }
+
 input[type="date"].meta-input { color-scheme: dark; }
 input[type="date"].meta-input::-webkit-calendar-picker-indicator {
   filter: invert(0.5);

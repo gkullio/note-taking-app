@@ -66,7 +66,20 @@
       <div id="meta-fields">
         <div class="meta-row">
           <span class="meta-label">Account Manager</span>
-          <input id="acct-mgr-input" type="text" class="meta-input" placeholder="—" spellcheck="false" autocomplete="off" />
+          <div class="meta-am-wrap">
+            <select id="acct-mgr-select" class="meta-input meta-select">
+              <option value="">—</option>
+            </select>
+            <button id="btn-add-am" type="button" title="Add account manager">+</button>
+          </div>
+        </div>
+        <div class="meta-row" id="am-add-row" style="display:none;">
+          <span class="meta-label"></span>
+          <div class="meta-am-wrap">
+            <input id="am-add-input" type="text" class="meta-input" placeholder="New account manager name…" spellcheck="false" autocomplete="off" />
+            <button id="btn-am-confirm" type="button" class="btn-am-action btn-am-confirm" title="Add">✓</button>
+            <button id="btn-am-cancel" type="button" class="btn-am-action btn-am-cancel" title="Cancel">✕</button>
+          </div>
         </div>
         <div class="meta-row">
           <span class="meta-label">Company Name</span>

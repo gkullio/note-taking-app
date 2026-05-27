@@ -36,3 +36,7 @@ class ContactUpdate(BaseModel):
     email: Optional[str] = None
     team: Optional[str] = None
     phone: Optional[str] = None
+
+
+class AccountManagerCreate(BaseModel):
+    name: str
