@@ -1,3 +1,5 @@
-### Place all ignored files here ###
-*code-workspace
-
+__pycache__/
+*.pyc
+*.pyo
+data/
+.env
